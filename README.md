@@ -35,14 +35,16 @@ Crossref 文档：
 - [x] 完成子笔记创建、更新与基础去重逻辑（需实测）
 - [x] 改进作者字段解析、机构 ID 归并信息展示及通讯作者标记（需 Zotero 10 实测）
 - [x] 增加返回 DOI 一致性检查，避免将错误 DOI 的记录写入文献
-- [ ] 增加手动抓取与批量处理
+- [x] 增加文献列表右键菜单手动抓取/刷新（需 Zotero 10 实机验证）
+- [x] 支持右键一次选择多篇普通文献并逐篇刷新（需 Zotero 10 实机验证）
+- [ ] 增加独立的批量扫描整个文库入口
 - [x] 增加 JavaScript 语法检查与 XPI 打包工作流
 - [ ] 在 Zotero 10 Windows 环境实测
 - [ ] 构建并发布 XPI
 
 ## 开发与安装
 
-当前代码已包含基础自动抓取流程：监听文献新增及元数据修改事件；检测到 DOI 后先查 OpenAlex，再尝试 Crossref 补充；将逐作者原始单位、机构、ORCID、国家/地区及通讯作者信息写入文献子笔记。作者序号以 authorships 数组顺序为准，不直接把 first/middle/last 当作序号。Crossref 仅在规范化姓名唯一精确匹配且 OpenAlex 未提供单位时补充。\n\nGitHub Actions 会在推送到 main 或提交 PR 时执行 JavaScript 语法检查并生成 XPI 构建产物。可在仓库的 **Actions → 对应工作流 → Artifacts** 下载测试包。发布版本时推送 `v*` 标签，工作流会将 XPI 附加到 GitHub Release。\n\n**注意：** 当前尚未在 Zotero 10 Windows 环境实机验证，不建议直接用于唯一/重要文献库。当前没有设置界面、手动抓取按钮或批量抓取入口；这些列为后续功能。
+当前代码已包含基础自动抓取流程：监听文献新增及元数据修改事件；检测到 DOI 后先查 OpenAlex，再尝试 Crossref 补充；将逐作者原始单位、机构、ORCID、国家/地区及通讯作者信息写入文献子笔记。作者序号以 authorships 数组顺序为准，不直接把 first/middle/last 当作序号。Crossref 仅在规范化姓名唯一精确匹配且 OpenAlex 未提供单位时补充。\n\nGitHub Actions 会在推送到 main 或提交 PR 时执行 JavaScript 语法检查并生成 XPI 构建产物。可在仓库的 **Actions → 对应工作流 → Artifacts** 下载测试包。发布版本时推送 `v*` 标签，工作流会将 XPI 附加到 GitHub Release。\n\n**注意：** 当前尚未在 Zotero 10 Windows 环境实机验证，不建议直接用于唯一/重要文献库。当前已加入文献列表右键菜单“抓取/刷新作者单位”，支持一次选择多篇普通文献逐篇刷新，并提供简体中文与英文菜单文本。该功能仍需在 Zotero 10 Windows 实机验证。当前没有设置界面，也没有自动扫描整个文库的独立入口。
 
 ## 隐私
 
