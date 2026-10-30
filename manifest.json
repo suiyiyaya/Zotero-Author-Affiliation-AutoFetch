@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "name": "Zotero Author Affiliation AutoFetch",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Fetch per-author institutional affiliations from OpenAlex and Crossref and save them to Zotero child notes.",
   "author": "suiyiyaya",
   "applications": {
