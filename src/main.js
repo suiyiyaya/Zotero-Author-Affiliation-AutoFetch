@@ -12,6 +12,13 @@
     const doi = (item.getField("DOI") || "").trim();
     if (!doi) return;
 
+    // Avoid repeated lookups when Zotero modifies an item after its metadata import.
+    const existingNotes = item.getNotes();
+    for (const noteID of existingNotes) {
+      const note = Zotero.Items.get(noteID);
+      if (note && note.getNote().includes("Author Affiliation AutoFetch")) return;
+    }
+
     try {
       let record = null;
       let source = "";
@@ -137,10 +144,10 @@
 
   const observer = {
     notify(event, type, ids) {
-      if (event !== "add" || type !== "item") return;
+      if ((event !== "add" && event !== "modify") || type !== "item") return;
       for (const id of ids) {
         // Defer network work until Zotero has completed the notifier transaction.
-        Zotero.Promise.delay(0).then(() => handleNewItem(id));
+        Zotero.Promise.delay(0).then(() => handleNewItem(id)).catch(error => log("Notifier task failed", error));
       }
     }
   };
