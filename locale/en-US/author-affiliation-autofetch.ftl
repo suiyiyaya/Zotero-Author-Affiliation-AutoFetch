@@ -1,1 +1,2 @@
-author-affiliation-autofetch-refresh = Fetch / Refresh Author Affiliations
+author-affiliation-autofetch-refresh =
+    .label = Fetch / Refresh Author Affiliations
