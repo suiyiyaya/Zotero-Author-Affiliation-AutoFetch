@@ -65,7 +65,7 @@
   }
 
   function normalizeAuthorName(value) {
-    return String(value || "").toLowerCase().replace(/[^\\p{L}\\p{N}]+/gu, "");
+    return String(value || "").toLowerCase().replace(/[^\p{L}\p{N}]+/gu, "");
   }
 
   function mergeCrossrefAffiliations(openalexRecord, crossrefRecord) {
