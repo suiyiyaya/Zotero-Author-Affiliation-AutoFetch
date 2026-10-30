@@ -7,7 +7,7 @@
 ## 目标功能
 
 - DOI 优先匹配 OpenAlex Work。
-- 以 OpenAlex 的 `authorships` 为核心，保留作者署名顺序、原始作者姓名、原始单位字符串、机构信息及通讯作者标记。
+- 以 OpenAlex 的 `authorships` 为核心，按数组顺序生成作者序号，保留原始作者姓名、数据库显示名、ORCID、原始单位字符串、机构名称/ID、国家/地区及通讯作者标记。
 - OpenAlex 无结果或无单位信息时，尝试使用 Crossref 的作者与单位字段补充。
 - 每篇文献生成一个可更新的子笔记，记录来源与抓取时间。
 - 不按作者姓名猜测单位；不把无法可靠对应的机构强行分配给作者。
@@ -33,6 +33,8 @@ Crossref 文档：
 - [x] 完成 OpenAlex DOI 查询与作者署名读取（需实测接口兼容性）
 - [x] 完成 Crossref 备用查询（需实测接口兼容性）
 - [x] 完成子笔记创建、更新与基础去重逻辑（需实测）
+- [x] 改进作者字段解析、机构 ID 归并信息展示及通讯作者标记（需 Zotero 10 实测）
+- [x] 增加返回 DOI 一致性检查，避免将错误 DOI 的记录写入文献
 - [ ] 增加手动抓取与批量处理
 - [x] 增加 JavaScript 语法检查与 XPI 打包工作流
 - [ ] 在 Zotero 10 Windows 环境实测
@@ -40,7 +42,7 @@ Crossref 文档：
 
 ## 开发与安装
 
-当前代码已包含基础自动抓取流程：监听文献新增及元数据修改事件；检测到 DOI 后先查 OpenAlex，缺少作者署名时回退到 Crossref；将结果写入文献子笔记。\n\nGitHub Actions 会在推送到 main 或提交 PR 时执行 JavaScript 语法检查并生成 XPI 构建产物。可在仓库的 **Actions → 对应工作流 → Artifacts** 下载测试包。发布版本时推送 `v*` 标签，工作流会将 XPI 附加到 GitHub Release。\n\n**注意：** 当前尚未在 Zotero 10 Windows 环境实机验证，不建议直接用于唯一/重要文献库。当前没有设置界面、手动抓取按钮或批量抓取入口；这些列为后续功能。
+当前代码已包含基础自动抓取流程：监听文献新增及元数据修改事件；检测到 DOI 后先查 OpenAlex，再尝试 Crossref 补充；将逐作者原始单位、机构、ORCID、国家/地区及通讯作者信息写入文献子笔记。作者序号以 authorships 数组顺序为准，不直接把 first/middle/last 当作序号。Crossref 仅在规范化姓名唯一精确匹配且 OpenAlex 未提供单位时补充。\n\nGitHub Actions 会在推送到 main 或提交 PR 时执行 JavaScript 语法检查并生成 XPI 构建产物。可在仓库的 **Actions → 对应工作流 → Artifacts** 下载测试包。发布版本时推送 `v*` 标签，工作流会将 XPI 附加到 GitHub Release。\n\n**注意：** 当前尚未在 Zotero 10 Windows 环境实机验证，不建议直接用于唯一/重要文献库。当前没有设置界面、手动抓取按钮或批量抓取入口；这些列为后续功能。
 
 ## 隐私
 
