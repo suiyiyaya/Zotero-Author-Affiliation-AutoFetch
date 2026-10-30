@@ -6,11 +6,15 @@
   const log = (...args) => Zotero.debug("[Author Affiliation AutoFetch] " + args.join(" "));
 
   function normalizeDOI(value) {
-    return String(value || "").trim()
-      .replace(/^https?:\\/\\/(dx\\.)?doi\\.org\\//i, "")
-      .replace(/^doi:\\s*/i, "");
+    let doi = String(value || "").trim();
+    const lower = doi.toLowerCase();
+    if (lower.startsWith("https://doi.org/")) doi = doi.slice(16);
+    else if (lower.startsWith("http://doi.org/")) doi = doi.slice(15);
+    else if (lower.startsWith("https://dx.doi.org/")) doi = doi.slice(19);
+    else if (lower.startsWith("http://dx.doi.org/")) doi = doi.slice(18);
+    if (doi.toLowerCase().startsWith("doi:")) doi = doi.slice(4).trim();
+    return doi;
   }
-
   async function handleNewItem(itemID) {
     const item = Zotero.Items.get(itemID);
     if (!item || !item.isRegularItem()) return;
