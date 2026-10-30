@@ -1,1 +1,2 @@
-author-affiliation-autofetch-refresh = 抓取/刷新作者单位
+author-affiliation-autofetch-refresh =
+    .label = 抓取/刷新作者单位
