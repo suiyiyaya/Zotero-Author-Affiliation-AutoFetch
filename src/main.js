@@ -197,14 +197,8 @@
         menus: [{
           menuType: "menuitem",
           l10nID: "author-affiliation-autofetch-refresh",
-          onShowing: (event, context) => {
-            // Keep the menu visible even if a Zotero build does not expose
-            // context.items in the expected shape. The command validates selection.
-            log("Context menu opened; context keys:", Object.keys(context || {}).join(","),
-              "selected items:", Array.isArray(context && context.items) ? context.items.length : "unavailable");
-            context.setVisible(true);
-          },
           onCommand: (event, context) => {
+            log("Manual refresh menu command triggered.");
             let selectedItems = Array.isArray(context && context.items) ? context.items : [];
             if (!selectedItems.length) {
               try {
