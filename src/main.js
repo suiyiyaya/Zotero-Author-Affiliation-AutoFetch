@@ -199,7 +199,8 @@
           menuType: "menuitem",
           l10nID: "author-affiliation-autofetch-refresh",
           onShowing: (event, context) => {
-            context.setVisible(!!(context.items && context.items.some(item => item && item.isRegularItem())));
+            context.setVisible(!!(context.items && context.items.length &&
+              context.items.every(item => item && item.isRegularItem())));
           },
           onCommand: (event, context) => {
             runManualFetch(context.items || []).catch(error =>
