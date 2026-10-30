@@ -5,11 +5,17 @@
 
   const log = (...args) => Zotero.debug("[Author Affiliation AutoFetch] " + args.join(" "));
 
+  function normalizeDOI(value) {
+    return String(value || "").trim()
+      .replace(/^https?:\\/\\/(dx\\.)?doi\\.org\\//i, "")
+      .replace(/^doi:\\s*/i, "");
+  }
+
   async function handleNewItem(itemID) {
     const item = Zotero.Items.get(itemID);
     if (!item || !item.isRegularItem()) return;
 
-    const doi = (item.getField("DOI") || "").trim();
+    const doi = normalizeDOI(item.getField("DOI"));
     if (!doi) return;
 
     // Avoid repeated lookups when Zotero modifies an item after its metadata import.
