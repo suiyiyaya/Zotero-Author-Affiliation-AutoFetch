@@ -26,7 +26,7 @@ jobs:
         run: |
           zip -r Zotero-Author-Affiliation-AutoFetch.xpi manifest.json bootstrap.js src locale README.md LICENSE
           unzip -t Zotero-Author-Affiliation-AutoFetch.xpi
-          unzip -p Zotero-Author-Affiliation-AutoFetch.xpi manifest.json | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>{const m=JSON.parse(s);if(m.version!=='0.2.3'||m.applications.zotero.strict_max_version!=='10.0.*')process.exit(1);if(!m.applications.zotero.update_url)process.exit(1);console.log('Packaged XPI manifest OK')})"
+          unzip -p Zotero-Author-Affiliation-AutoFetch.xpi manifest.json | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>{const m=JSON.parse(s);if(m.version!=='0.2.4'||m.applications.zotero.strict_max_version!=='10.0.*')process.exit(1);if(!m.applications.zotero.update_url)process.exit(1);console.log('Packaged XPI manifest OK')})"
       - name: Upload XPI artifact
         uses: actions/upload-artifact@v4
         with:
