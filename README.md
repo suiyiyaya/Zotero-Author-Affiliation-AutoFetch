@@ -44,7 +44,7 @@ Crossref 文档：
 
 ## 开发与安装
 
-当前代码已包含基础自动抓取流程：监听文献新增及元数据修改事件；检测到 DOI 后先查 OpenAlex，再尝试 Crossref 补充；将逐作者原始单位、机构、ORCID、国家/地区及通讯作者信息写入文献子笔记。作者序号以 authorships 数组顺序为准，不直接把 first/middle/last 当作序号。Crossref 仅在规范化姓名唯一精确匹配且 OpenAlex 未提供单位时补充。\n\nGitHub Actions 会在推送到 main 或提交 PR 时执行 JavaScript 语法检查并生成 XPI 构建产物。可在仓库的 **Actions → 对应工作流 → Artifacts** 下载测试包。发布版本时推送 `v*` 标签，工作流会将 XPI 附加到 GitHub Release。\n\n**注意：** 当前尚未在 Zotero 10 Windows 环境实机验证，不建议直接用于唯一/重要文献库。当前已加入文献列表右键菜单“抓取/刷新作者单位”，支持一次选择多篇普通文献逐篇刷新，并提供简体中文与英文菜单文本。该功能仍需在 Zotero 10 Windows 实机验证。当前没有设置界面，也没有自动扫描整个文库的独立入口。
+当前代码已包含基础自动抓取流程：监听文献新增及元数据修改事件；检测到 DOI 后先查 OpenAlex，再尝试 Crossref 补充；将逐作者原始单位、机构、ORCID、国家/地区及通讯作者信息写入文献子笔记。作者序号以 authorships 数组顺序为准，不直接把 first/middle/last 当作序号。Crossref 仅在规范化姓名唯一精确匹配且 OpenAlex 未提供单位时补充。\n\nGitHub Actions 会在推送到 main 或提交 PR 时执行 JavaScript 语法检查并生成 XPI 构建产物。可在仓库的 **Actions → 对应工作流 → Artifacts** 下载测试包。发布版本时推送 `v*` 标签，工作流会将 XPI 附加到 GitHub Release。\n\n**注意：** 当前尚未在 Zotero 10 Windows 环境实机验证，不建议直接用于唯一/重要文献库。当前开发版本为 0.2.1，manifest 的 Zotero 兼容范围已调整为 10.0.*。已加入文献列表右键菜单“抓取/刷新作者单位”，支持一次选择多篇普通文献逐篇刷新，并提供简体中文与英文 Fluent 菜单文本。仍需在 Zotero 10 Windows 实机验证；CI 只检查语法与打包，不等于实机兼容性测试。当前没有设置界面，也没有自动扫描整个文库的独立入口。
 
 ## 隐私
 
