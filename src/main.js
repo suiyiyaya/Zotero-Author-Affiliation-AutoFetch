@@ -32,16 +32,16 @@
         log("OpenAlex lookup failed; trying Crossref", error && error.message ? error.message : error);
       }
 
-      if (!record) {
-        try {
-          const crossref = await fetchCrossrefByDOI(doi);
-          if (crossref && Array.isArray(crossref.authorships) && crossref.authorships.length) {
-            record = crossref;
-            source = "Crossref";
-          }
-        } catch (error) {
-          log("Crossref lookup failed", error && error.message ? error.message : error);
+      try {
+        const crossref = await fetchCrossrefByDOI(doi);
+        if (!record && crossref && Array.isArray(crossref.authorships) && crossref.authorships.length) {
+          record = crossref;
+          source = "Crossref";
+        } else if (record && source === "OpenAlex" && mergeCrossrefAffiliations(record, crossref)) {
+          source = "OpenAlex + Crossref supplement";
         }
+      } catch (error) {
+        log("Crossref lookup/supplement failed", error && error.message ? error.message : error);
       }
 
       if (record) {
@@ -62,6 +62,33 @@
     });
     if (response.status !== 200) throw new Error("OpenAlex HTTP " + response.status);
     return JSON.parse(response.responseText);
+  }
+
+  function normalizeAuthorName(value) {
+    return String(value || "").toLowerCase().replace(/[^\\p{L}\\p{N}]+/gu, "");
+  }
+
+  function mergeCrossrefAffiliations(openalexRecord, crossrefRecord) {
+    if (!openalexRecord || !crossrefRecord) return false;
+    let merged = false;
+    for (const openalexAuthor of (openalexRecord.authorships || [])) {
+      const openalexName = normalizeAuthorName(
+        openalexAuthor.raw_author_name ||
+        (openalexAuthor.author && openalexAuthor.author.display_name)
+      );
+      if (!openalexName) continue;
+      const match = (crossrefRecord.authorships || []).find(author =>
+        normalizeAuthorName(author.raw_author_name) === openalexName
+      );
+      if (!match) continue;
+      const current = openalexAuthor.raw_affiliation_strings || [];
+      const supplementary = match.raw_affiliation_strings || [];
+      if (!current.length && supplementary.length) {
+        openalexAuthor.raw_affiliation_strings = supplementary.slice();
+        merged = true;
+      }
+    }
+    return merged;
   }
 
   async function fetchCrossrefByDOI(doi) {
