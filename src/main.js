@@ -2,6 +2,10 @@
 (() => {
   const observerID = "author-affiliation-autofetch";
   let notifierID = null;
+  let menuID = null;
+  const inFlight = new Set();
+  const pluginID = "author-affiliation-autofetch@suiyiyaya";
+  const menuRegistrationID = "author-affiliation-autofetch-item-menu";
   const log = (...args) => Zotero.debug("[Author Affiliation AutoFetch] " + args.join(" "));
 
   function normalizeDOI(value) {
@@ -91,20 +95,22 @@
   }
 
   async function handleNewItem(itemID, options = {}) {
-    const item = Zotero.Items.get(itemID);
-    if (!item || !item.isRegularItem()) return;
-
-    const doi = normalizeDOI(item.getField("DOI"));
-    if (!doi) return;
-
-    if (!options.force) {
-      for (const noteID of item.getNotes()) {
-        const note = Zotero.Items.get(noteID);
-        if (note && note.getNote().includes("Author Affiliation AutoFetch")) return;
-      }
-    }
-
+    if (inFlight.has(itemID)) return "busy";
+    inFlight.add(itemID);
     try {
+      const item = Zotero.Items.get(itemID);
+      if (!item || !item.isRegularItem()) return "skipped";
+
+      const doi = normalizeDOI(item.getField("DOI"));
+      if (!doi) return "no-doi";
+
+      if (!options.force) {
+        for (const noteID of item.getNotes()) {
+          const note = Zotero.Items.get(noteID);
+          if (note && note.getNote().includes("Author Affiliation AutoFetch")) return "already-done";
+        }
+      }
+
       let record = null;
       let source = "";
       try {
@@ -131,7 +137,7 @@
 
       if (!record) {
         log("No author-affiliation metadata found for item", itemID);
-        return;
+        return "no-data";
       }
 
       const recordDOI = normalizeDOI(record.doi || record.DOI || "");
@@ -141,8 +147,70 @@
 
       await saveAffiliationNote(item, record, source, doi);
       log("Saved", source, "affiliations for item", itemID);
+      return "success";
     } catch (error) {
       log("Processing failed for item", itemID, error && error.message ? error.message : error);
+      return "error";
+    } finally {
+      inFlight.delete(itemID);
+    }
+  }
+
+  async function runManualFetch(items) {
+    const regularItems = (items || []).filter(item => item && item.isRegularItem());
+    if (!regularItems.length) {
+      Zotero.getMainWindow().alert("请先选择至少一篇普通文献条目。");
+      return;
+    }
+
+    const counts = { success: 0, "no-doi": 0, "no-data": 0, error: 0, busy: 0, skipped: 0 };
+    for (const item of regularItems) {
+      const result = await handleNewItem(item.id, { force: true });
+      if (Object.prototype.hasOwnProperty.call(counts, result)) counts[result]++;
+    }
+
+    const message = [
+      "作者单位抓取/刷新完成。",
+      "成功更新：" + counts.success,
+      "没有 DOI：" + counts["no-doi"],
+      "未找到作者单位数据：" + counts["no-data"],
+      "处理失败：" + counts.error,
+      "正在处理、已跳过：" + (counts.busy + counts.skipped)
+    ].join("\n");
+    Zotero.getMainWindow().alert(message);
+  }
+
+  function registerContextMenu() {
+    if (!Zotero.MenuManager || typeof Zotero.MenuManager.registerMenu !== "function") {
+      log("MenuManager API unavailable; manual context menu not registered.");
+      return;
+    }
+
+    try {
+      const win = Zotero.getMainWindow();
+      if (win && win.MozXULElement) {
+        win.MozXULElement.insertFTLIfNeeded("author-affiliation-autofetch.ftl");
+      }
+      menuID = Zotero.MenuManager.registerMenu({
+        menuID: menuRegistrationID,
+        pluginID,
+        target: "main/library/item",
+        menus: [{
+          menuType: "menuitem",
+          l10nID: "author-affiliation-autofetch-refresh",
+          onShowing: (event, context) => {
+            context.setVisible(!!(context.items && context.items.some(item => item && item.isRegularItem())));
+          },
+          onCommand: (event, context) => {
+            runManualFetch(context.items || []).catch(error =>
+              log("Manual fetch failed", error && error.message ? error.message : error)
+            );
+          }
+        }]
+      });
+      log("Registered manual refresh context menu.");
+    } catch (error) {
+      log("Could not register context menu", error && error.message ? error.message : error);
     }
   }
 
@@ -284,11 +352,20 @@
   };
 
   notifierID = Zotero.Notifier.registerObserver(observer, ["item"], observerID);
+  registerContextMenu();
   log("Plugin started; watching newly added items.");
 
   addon.shutdown = () => {
     if (notifierID) Zotero.Notifier.unregisterObserver(notifierID);
     notifierID = null;
+    if (menuID && Zotero.MenuManager) {
+      try {
+        Zotero.MenuManager.unregisterMenu(menuID);
+      } catch (error) {
+        log("Could not unregister context menu", error && error.message ? error.message : error);
+      }
+    }
+    menuID = null;
     log("Plugin stopped.");
   };
 })();
