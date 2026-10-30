@@ -13,20 +13,38 @@
     if (!doi) return;
 
     try {
-      const record = await fetchOpenAlexByDOI(doi);
-      if (record && Array.isArray(record.authorships) && record.authorships.length) {
-        await saveAffiliationNote(item, record, "OpenAlex");
-        log("Saved OpenAlex affiliations for item", itemID);
-        return;
+      let record = null;
+      let source = "";
+      try {
+        const openalex = await fetchOpenAlexByDOI(doi);
+        if (openalex && Array.isArray(openalex.authorships) && openalex.authorships.length) {
+          record = openalex;
+          source = "OpenAlex";
+        }
+      } catch (error) {
+        log("OpenAlex lookup failed; trying Crossref", error && error.message ? error.message : error);
       }
 
-      const crossref = await fetchCrossrefByDOI(doi);
-      if (crossref) {
-        await saveAffiliationNote(item, crossref, "Crossref");
-        log("Saved Crossref affiliations for item", itemID);
+      if (!record) {
+        try {
+          const crossref = await fetchCrossrefByDOI(doi);
+          if (crossref && Array.isArray(crossref.authorships) && crossref.authorships.length) {
+            record = crossref;
+            source = "Crossref";
+          }
+        } catch (error) {
+          log("Crossref lookup failed", error && error.message ? error.message : error);
+        }
+      }
+
+      if (record) {
+        await saveAffiliationNote(item, record, source);
+        log("Saved", source, "affiliations for item", itemID);
+      } else {
+        log("No author-affiliation metadata found for item", itemID);
       }
     } catch (error) {
-      log("Fetch failed for item", itemID, error && error.message ? error.message : error);
+      log("Processing failed for item", itemID, error && error.message ? error.message : error);
     }
   }
 
@@ -131,11 +149,9 @@
   log("Plugin started; watching newly added items.");
 
   // Expose cleanup to the bootstrap scope.
-  if (typeof _addon !== "undefined") {
-    _addon.shutdown = () => {
+  addon.shutdown = () => {
       if (notifierID) Zotero.Notifier.unregisterObserver(notifierID);
       notifierID = null;
       log("Plugin stopped.");
-    };
-  }
+  };
 })();
