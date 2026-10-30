@@ -20,7 +20,7 @@ jobs:
           node --check bootstrap.js
           node --check src/main.js
       - name: Package XPI
-        run: zip -r Zotero-Author-Affiliation-AutoFetch.xpi manifest.json bootstrap.js src README.md LICENSE
+        run: zip -r Zotero-Author-Affiliation-AutoFetch.xpi manifest.json bootstrap.js src locale README.md LICENSE
       - name: Upload XPI artifact
         uses: actions/upload-artifact@v4
         with:
