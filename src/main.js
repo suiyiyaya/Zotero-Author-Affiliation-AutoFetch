@@ -198,11 +198,25 @@
           menuType: "menuitem",
           l10nID: "author-affiliation-autofetch-refresh",
           onShowing: (event, context) => {
-            context.setVisible(!!(context.items && context.items.length &&
-              context.items.every(item => item && item.isRegularItem())));
+            // Keep the menu visible even if a Zotero build does not expose
+            // context.items in the expected shape. The command validates selection.
+            log("Context menu opened; context keys:", Object.keys(context || {}).join(","),
+              "selected items:", Array.isArray(context && context.items) ? context.items.length : "unavailable");
+            context.setVisible(true);
           },
           onCommand: (event, context) => {
-            runManualFetch(context.items || []).catch(error =>
+            let selectedItems = Array.isArray(context && context.items) ? context.items : [];
+            if (!selectedItems.length) {
+              try {
+                const pane = Zotero.getActiveZoteroPane();
+                selectedItems = pane && typeof pane.getSelectedItems === "function"
+                  ? pane.getSelectedItems()
+                  : [];
+              } catch (error) {
+                log("Could not read selected items from active pane", error && error.message ? error.message : error);
+              }
+            }
+            runManualFetch(selectedItems).catch(error =>
               log("Manual fetch failed", error && error.message ? error.message : error)
             );
           }
