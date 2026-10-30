@@ -187,10 +187,9 @@
     }
 
     try {
-      const win = Zotero.getMainWindow();
-      if (win && win.MozXULElement) {
-        win.MozXULElement.insertFTLIfNeeded("author-affiliation-autofetch.ftl");
-      }
+      // Zotero 10 automatically registers plugin locale/*.ftl resources
+      // in its consolidated localization source; do not inject a legacy
+      // per-window Fluent resource here.
       menuID = Zotero.MenuManager.registerMenu({
         menuID: menuRegistrationID,
         pluginID,
